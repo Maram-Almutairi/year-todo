@@ -264,18 +264,15 @@ main { position: relative; z-index: 2; }
 :lang(ar) .fall-line { font-style: normal; }
 .calm .fall { display: none; }
 
-/* the knight that leaves the wheel, falls with the visitor, and lands in today */
-.fly-kitten {
-  position: fixed; left: 0; top: 0; z-index: 8; width: 100px; height: auto; pointer-events: none;
-  transform-origin: 0 0; visibility: hidden; will-change: transform, clip-path;
-  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to bottom, #000 82%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%);
-  mask-composite: intersect;
+/* a blossom leaves the wheel, tumbles down with the visitor, and lands on the knight's head */
+.fly-flower, .fly-petals svg {
+  position: fixed; left: 0; top: 0; z-index: 8; pointer-events: none; visibility: hidden;
+  transform-origin: 50% 50%; will-change: transform, opacity;
 }
-.fly-kitten.is-on { visibility: visible; }
-.is-flying .standing img { opacity: 0; }
-.calm .fly-kitten { display: none; }
+.fly-flower { width: 320px; height: 320px; filter: drop-shadow(0 24px 28px rgba(16, 22, 20, 0.35)); }
+.fly-flower svg { display: block; width: 100%; height: 100%; }
+.fly-on .fly-flower, .fly-on .fly-petals svg { visibility: visible; }
+.calm .fly-flower, .calm .fly-petals { display: none; }
 
 /* ---------- 2. today ---------- */
 .today { min-height: 100vh; padding-top: 128px; padding-bottom: 96px; }
@@ -441,6 +438,24 @@ li:hover > .del, .del:focus-visible { opacity: 1; }
 .add-goal { display: flex; gap: 8px; margin-top: 12px; }
 .add-goal input { flex: 1; min-width: 0; min-height: 42px; font-size: 16px; }
 .add-goal .icon-btn { width: 42px; height: 42px; }
+
+.year-pin .section-head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px 24px; }
+.year-pin .section-head h2, .year-pin .section-sub { grid-column: 1; }
+.month-nav { grid-column: 2; grid-row: 1 / span 2; display: flex; align-items: center; gap: 10px; }
+[dir="rtl"] .month-nav .icon-btn .ico { transform: scaleX(-1); }
+.month-dots { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(44, 52, 50, 0.6); border: 1px solid var(--glass-line); }
+.month-dots button {
+  min-width: 40px; height: 34px; padding: 0 6px; border: 0; border-radius: 999px; background: transparent;
+  color: var(--on-sky-soft); font-size: 13px; transition: background 0.3s, color 0.3s;
+}
+.month-dots button:hover { background: rgba(255, 255, 255, 0.12); color: var(--on-sky); }
+.month-dots button.is-now { box-shadow: inset 0 0 0 1px var(--blossom); }
+.month-dots button[aria-current="true"] { background: var(--blossom); color: #3a262d; }
+@media (max-width: 1100px) {
+  .year-pin .section-head { grid-template-columns: 1fr; }
+  .month-nav { grid-column: 1; grid-row: auto; }
+  .month-dots { overflow-x: auto; max-width: calc(100vw - 140px); scrollbar-width: none; }
+}
 
 /* ---------- 4. progress ---------- */
 .progress { padding-top: 120px; padding-bottom: 120px; }

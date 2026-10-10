@@ -141,89 +141,68 @@
     .fromTo('.fall-mist', { opacity: 0 }, { opacity: 0.5, duration: 0.16, ease: 'power1.in' }, 0.44)
     .to('.fall-mist', { opacity: 0, duration: 0.24, ease: 'power2.out' }, 0.6);
 
-  // ================= The knight's flight =================
-  // One continuous move from the end of the wheel to its place in today:
-  // breaks out of the round window → falls with the visitor through the clouds, gliding → lands
-  // exactly on the standing figure, which takes over. Positions are read live, so it lands right
-  // at any screen size, and scrolling back reverses it.
-  const fly = $('#flyKitten');
+  // ================= The blossom's fall =================
+  // A blossom slips out of the wheel's eye, tumbles down in front of the visitor through the clouds
+  // (spinning, swaying, turning edge-on like a real falling flower, three loose petals trailing), and
+  // settles onto the flower on the knight's head in today. Positions are read live; scrolling back reverses it.
+  const flower = $('#flyFlower');
+  const loosePetals = $$('.fly-petals svg');
   const iris = $('.iris');
-  const irisImg = $('.iris img');
   const landing = $('.standing img');
-  const RATIO = 1420 / 784;
+  const BASE = 320;                                       // drawn size; only ever scaled down, so it stays crisp
   const lerp = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-  const clamp01 = (t) => Math.max(0, Math.min(1, t));
-  let flying = false;
-  function placeKitten(p) {
+  let flyingOn = false;
+  const place = (el, cx, cy, size, rot, flip, op, base) => {
+    const sc = size / base;
+    el.style.transform = `translate3d(${(cx - base / 2).toFixed(1)}px, ${(cy - base / 2).toFixed(1)}px, 0) rotate(${rot.toFixed(1)}deg) scale(${(sc * flip).toFixed(4)}, ${sc.toFixed(4)})`;
+    el.style.opacity = op.toFixed(3);
+  };
+  function placeFlower(p) {
     const on = p > 0 && p < 1;
-    if (on !== flying) {
-      flying = on;
-      fly.classList.toggle('is-on', on);
-      document.body.classList.toggle('is-flying', on);
-    }
-    irisImg.style.opacity = p > 0 ? String(1 - clamp01(p / 0.08)) : '';
+    if (on !== flyingOn) { flyingOn = on; document.body.classList.toggle('fly-on', on); }
     if (!on) return;
     const vw = window.innerWidth, vh = window.innerHeight;
-    // A: the round window (kitten fills it the way the iris crop does)
     const ir = iris.getBoundingClientRect();
-    const aW = ir.width * 1.05, aX = ir.left + ir.width / 2 - aW / 2, aY = ir.top - ir.height * 0.12;
-    // B: gliding in front of the visitor
-    const bH = Math.min(vh * 0.58, 600), bW = bH / RATIO, bX = vw / 2 - bW / 2, bY = vh * 0.12;
-    // C: the standing figure in today
     const lr = landing.getBoundingClientRect();
-    let x, y, w, rot = 0, clip = 0;
-    if (p < 0.14) {                                     // breaking out of the window
+    const A = { x: ir.left + ir.width / 2, y: ir.top + ir.height / 2, s: Math.max(30, ir.width * 0.18) };
+    const B = { x: vw / 2, y: vh * 0.42, s: Math.min(vw, vh) * 0.42 };
+    // the blossom on the knight's head sits ~66% across, ~16% down the standing image
+    const C = { x: lr.left + lr.width * 0.66, y: lr.top + lr.height * 0.165, s: lr.width * 0.16 };
+    const swayEnd = Math.sin(Math.PI * 2.2) * vw * 0.16;
+    const flipEnd = 0.35 + 0.65 * Math.abs(Math.cos(Math.PI * 2.5));
+    let x, y, size, rot, flip = 1, op = 1;
+    if (p < 0.14) {                                       // slips out of the wheel's eye and grows toward you
       const t = ease(p / 0.14);
-      x = lerp(aX, bX, t); y = lerp(aY, bY, t); w = lerp(aW, bW, t);
-      clip = 1 - t;
-    } else if (p < 0.72) {                              // the fall: drift and sway like a glider
-      const t = (p - 0.14) / 0.58;
-      x = bX + Math.sin(t * Math.PI * 2) * vw * 0.06;
-      y = bY + Math.sin(t * Math.PI * 4) * vh * 0.025;
-      w = bW;
-      rot = Math.sin(t * Math.PI * 3) * 7;
-    } else {                                            // landing on its spot
-      const t = ease((p - 0.72) / 0.28);
-      x = lerp(bX, lr.left, t); y = lerp(bY, lr.top, t); w = lerp(bW, lr.width, t);
-      rot = Math.sin(Math.PI * 3) * 7 * (1 - t);
+      x = lerp(A.x, B.x, t); y = lerp(A.y, B.y, t); size = lerp(A.s, B.s, t); rot = t * 140; op = Math.min(1, p / 0.04);
+    } else if (p < 0.74) {                                // the tumble
+      const t = (p - 0.14) / 0.6;
+      x = B.x + Math.sin(t * Math.PI * 2.2) * vw * 0.16;
+      y = B.y + Math.sin(t * Math.PI * 4) * vh * 0.04;
+      size = B.s * (0.94 + 0.06 * Math.sin(t * Math.PI * 3));
+      rot = 140 + t * 540 + Math.sin(t * Math.PI * 5) * 18;
+      flip = 0.35 + 0.65 * Math.abs(Math.cos(t * Math.PI * 2.5));   // turns edge-on and back as it falls
+    } else {                                              // settles onto the knight's head
+      const t = ease((p - 0.74) / 0.26);
+      x = lerp(B.x + swayEnd, C.x, t); y = lerp(B.y, C.y, t); size = lerp(B.s, C.s, t);
+      rot = lerp(680, 740, t); flip = lerp(flipEnd, 1, t);
+      op = t > 0.85 ? 1 - (t - 0.85) / 0.15 : 1;
     }
-    const s = w / 100;
-    fly.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg) scale(${s.toFixed(4)})`;
-    // while still in the window, clip to the circle so the hand-off from the iris is seamless
-    fly.style.clipPath = clip > 0.01 ? `circle(${(36 + (1 - clip) * 120).toFixed(1)}% at 50% 33%)` : 'none';
+    place(flower, x, y, size, rot, flip, op, BASE);
+    // loose petals trail above it, each on its own lag and sway; they drift away before the landing
+    loosePetals.forEach((el, i) => {
+      const q = Math.max(0, p - (0.06 + i * 0.05));
+      const px = x + Math.sin(q * 9 + i * 2.1) * vw * (0.1 + i * 0.05) + (i - 1) * vw * 0.12;
+      const py = y - vh * (0.2 + i * 0.12) + Math.min(1, q / 0.7) * vh * 0.1;
+      const pOp = p < 0.06 ? p / 0.06 : p > 0.7 ? Math.max(0, 1 - (p - 0.7) / 0.12) : 1;
+      place(el, px, py, 64 * (0.7 + i * 0.25), q * (600 + i * 200), 0.4 + 0.6 * Math.abs(Math.cos(q * 12 + i)), pOp * 0.95, 64);
+    });
   }
   ScrollTrigger.create({
     trigger: '#fall', start: 'top top', endTrigger: '#home', end: 'top 12%',
-    onUpdate: (self) => placeKitten(self.progress),
-    onLeave: () => placeKitten(1),
-    onLeaveBack: () => placeKitten(0)
-  });
-
-  // ================= Section hand-offs in 3D =================
-  // As each section arrives, the one before swings away to one side in depth while the new one
-  // swings in from the other; the sides alternate down the page. Transform + opacity only.
-  const chain = [
-    ['.fall-stage', '#home'],
-    ['#home', '.year-pin'],
-    ['.year-pin', '#progress'],
-    ['#progress', '#motivation'],
-    ['#motivation', '#settings'],
-    ['#settings', '.closing']
-  ];
-  const triggerOf = (sel) => (sel === '.year-pin' ? '#goals' : sel);
-  chain.forEach(([prev, next], i) => {
-    const side = i % 2 === 0 ? 1 : -1;              // +1: previous leaves to the right, next comes from the left
-    const tl = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: { trigger: triggerOf(next), start: 'top bottom', end: 'top 20%', scrub: 0.8 }
-    });
-    tl.fromTo(prev,
-      { xPercent: 0, rotateY: 0, z: 0, opacity: 1, transformPerspective: 1400, transformOrigin: side > 0 ? '100% 50%' : '0% 50%' },
-      { xPercent: 38 * side, rotateY: -32 * side, z: -260, opacity: 0, duration: 1 }, 0)
-      .fromTo(next,
-        { xPercent: -38 * side, rotateY: 32 * side, z: -260, opacity: 0, transformPerspective: 1400, transformOrigin: side > 0 ? '0% 50%' : '100% 50%' },
-        { xPercent: 0, rotateY: 0, z: 0, opacity: 1, duration: 1, ease: 'power2.out' }, 0);
+    onUpdate: (self) => placeFlower(self.progress),
+    onLeave: () => placeFlower(1),
+    onLeaveBack: () => placeFlower(0)
   });
 
   // ================= 2. Today =================
@@ -241,9 +220,9 @@
       { clipPath: 'inset(0% 0% 0% 0% round 28px)', rotateX: 0, y: 0, duration: 1.3, ease: 'expo.out' })
     .from('.quests .quest, .quests .bar, .add-quest', { y: 22, opacity: 0, duration: 0.8, stagger: 0.07, ease: 'expo.out', clearProps: 'transform,opacity' }, 0.25);
   // the knight steps up out of the grass, full height, and holds the ground
-  // (the standing knight's entrance is the flight below: it lands here)
   const stand = gsap.timeline({ scrollTrigger: { trigger: '.standing', start: 'top 85%' } });
   stand
+    .fromTo('.standing img', { y: 140, scale: 0.88, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 1.5, ease: 'expo.out' })
     .fromTo('.standing-halo', { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.6, ease: 'expo.out' }, 0.2);
   gsap.from('.note-card', {
     rotate: rtl ? 10 : -10, y: 80, opacity: 0, duration: 1.4, ease: 'elastic.out(1, 0.7)',
@@ -268,7 +247,7 @@
       inner.style.opacity = (1 - Math.min(1, Math.abs(d)) * 0.35).toFixed(3);
     });
   }
-  gsap.to(track, {
+  const monthsTween = gsap.to(track, {
     x: () => (rtl ? 1 : -1) * dist(),
     ease: 'none',
     scrollTrigger: {
@@ -278,6 +257,27 @@
     }
   });
   new MutationObserver(tilt).observe(track, { childList: true });
+
+  // Month browsing: dots + previous/next jump the pinned scroll to a month (or scroll the strip in calm mode)
+  const monthsST = monthsTween.scrollTrigger;
+  const dots = () => $$('#monthDots button');
+  let currentMonthIdx = -1;
+  function setActiveMonth(i) {
+    if (i === currentMonthIdx) return;
+    currentMonthIdx = i;
+    dots().forEach((d, k) => d.setAttribute('aria-current', k === i ? 'true' : 'false'));
+  }
+  const monthAt = () => Math.round(monthsST.progress * 11);
+  ScrollTrigger.create({ trigger: '#goals', start: 'top top', end: () => '+=' + dist() * 1.1, onUpdate: () => setActiveMonth(monthAt()), onRefresh: () => setActiveMonth(monthAt()) });
+  setActiveMonth(0);
+  function goToMonth(i) {
+    i = Math.max(0, Math.min(11, i));
+    const y = monthsST.start + (monthsST.end - monthsST.start) * (i / 11) + 2;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+  $('#monthDots').addEventListener('click', (e) => { const b = e.target.closest('button[data-m]'); if (b) goToMonth(Number(b.dataset.m)); });
+  $('#monthPrev').addEventListener('click', () => goToMonth(Math.max(0, monthAt() - 1)));
+  $('#monthNext').addEventListener('click', () => goToMonth(Math.min(11, monthAt() + 1)));
   gsap.from('#goals .section-head > *', {
     y: 50, opacity: 0, duration: 1.2, stagger: 0.1, ease: 'expo.out',
     scrollTrigger: { trigger: '#goals', start: 'top 70%' }
@@ -332,6 +332,31 @@
   gsap.from('.sleepy', {
     y: 60, opacity: 0, rotate: rtl ? 6 : -6, duration: 1.5, ease: 'elastic.out(1, 0.6)',
     scrollTrigger: { trigger: '.closing', start: 'top 85%' }
+  });
+
+  // ================= Section hand-offs in 3D =================
+  // Each section swings in from one side as it arrives and swings out to the other only once it has
+  // been scrolled past; sides alternate down the page. Created after every pin, so the positions
+  // account for pinned scroll. Transform + opacity only.
+  const sections = [
+    { el: '#home', enter: '#home', exit: '#home' },
+    { el: '.year-pin', enter: '#goals', exit: '#progress', exitStart: 'top 95%', exitEnd: 'top 35%' },
+    { el: '#progress', enter: '#progress', exit: '#progress' },
+    { el: '#motivation', enter: '#motivation', exit: '#motivation' },
+    { el: '#settings', enter: '#settings', exit: '#settings' },
+    { el: '.closing', enter: '.closing' }
+  ];
+  sections.forEach((c, i) => {
+    const side = i % 2 === 0 ? 1 : -1;            // +1: comes in from the left, leaves to the right
+    gsap.fromTo(c.el,
+      { xPercent: -30 * side, rotateY: 26 * side, z: -200, opacity: 0, transformPerspective: 1400, transformOrigin: side > 0 ? '0% 50%' : '100% 50%' },
+      { xPercent: 0, rotateY: 0, z: 0, opacity: 1, ease: 'power2.out',
+        scrollTrigger: { trigger: c.enter, start: 'top bottom', end: 'top 35%', scrub: 0.8 } });
+    if (!c.exit) return;
+    gsap.to(c.el, {
+      xPercent: 30 * side, rotateY: -26 * side, z: -200, opacity: 0, ease: 'power1.in', immediateRender: false,
+      scrollTrigger: { trigger: c.exit, start: c.exitStart || 'bottom 40%', end: c.exitEnd || 'bottom top', scrub: 0.8 }
+    });
   });
 
   navTriggers();

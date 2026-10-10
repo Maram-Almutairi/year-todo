@@ -46,7 +46,29 @@
   </svg>
 
   <canvas id="sky" aria-hidden="true"></canvas>
-  <img class="fly-kitten" id="flyKitten" src="assets/kitten-cutout.webp" alt="" aria-hidden="true" width="784" height="1420" decoding="async">
+  <div class="fly-flower" id="flyFlower" aria-hidden="true">
+    <svg viewBox="-120 -120 240 240" width="320" height="320">
+      <defs>
+        <radialGradient id="petalGrad" cx="0" cy="-10" r="110" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#fff4f6"/><stop offset="0.45" stop-color="#f7cdd8"/><stop offset="1" stop-color="#e595ab"/>
+        </radialGradient>
+        <radialGradient id="heartGrad" cx="0" cy="0" r="22" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#fff1c4"/><stop offset="1" stop-color="#e7c27a"/>
+        </radialGradient>
+        <path id="petalShape" d="M0 0 C -40 -18 -50 -76 -20 -102 Q -8 -92 0 -96 Q 8 -92 20 -102 C 50 -76 40 -18 0 0 Z"/>
+      </defs>
+      <g><path d="M10 40 C 40 70 90 78 112 64 C 90 46 50 30 10 40 Z" fill="#8fa287"/><path d="M14 42 C 50 52 80 60 104 63" stroke="#6f8467" stroke-width="2" fill="none"/></g>
+      <g fill="url(#petalGrad)" stroke="#d98aa0" stroke-width="1.4"><use href="#petalShape" transform="rotate(0)"/><use href="#petalShape" transform="rotate(72)"/><use href="#petalShape" transform="rotate(144)"/><use href="#petalShape" transform="rotate(216)"/><use href="#petalShape" transform="rotate(288)"/></g>
+      <g stroke="#e9a9ba" stroke-width="1.2" stroke-linecap="round" opacity="0.7"><path d="M0 -14 L0 -62" transform="rotate(0)"/><path d="M0 -14 L0 -62" transform="rotate(72)"/><path d="M0 -14 L0 -62" transform="rotate(144)"/><path d="M0 -14 L0 -62" transform="rotate(216)"/><path d="M0 -14 L0 -62" transform="rotate(288)"/></g>
+      <circle r="20" fill="url(#heartGrad)"/>
+      <g fill="#c99a4a"><circle cx="12.0" cy="0.0" r="2.6"/><circle cx="9.7" cy="7.1" r="2.6"/><circle cx="3.7" cy="11.4" r="2.6"/><circle cx="-3.7" cy="11.4" r="2.6"/><circle cx="-9.7" cy="7.1" r="2.6"/><circle cx="-12.0" cy="0.0" r="2.6"/><circle cx="-9.7" cy="-7.1" r="2.6"/><circle cx="-3.7" cy="-11.4" r="2.6"/><circle cx="3.7" cy="-11.4" r="2.6"/><circle cx="9.7" cy="-7.1" r="2.6"/></g>
+    </svg>
+  </div>
+  <div class="fly-petals" aria-hidden="true">
+    <svg viewBox="-60 -110 120 120" width="64" height="64"><path d="M0 0 C -40 -18 -50 -76 -20 -102 Q -8 -92 0 -96 Q 8 -92 20 -102 C 50 -76 40 -18 0 0 Z" fill="url(#petalGrad)" stroke="#d98aa0" stroke-width="2"/></svg>
+    <svg viewBox="-60 -110 120 120" width="64" height="64"><path d="M0 0 C -40 -18 -50 -76 -20 -102 Q -8 -92 0 -96 Q 8 -92 20 -102 C 50 -76 40 -18 0 0 Z" fill="url(#petalGrad)" stroke="#d98aa0" stroke-width="2"/></svg>
+    <svg viewBox="-60 -110 120 120" width="64" height="64"><path d="M0 0 C -40 -18 -50 -76 -20 -102 Q -8 -92 0 -96 Q 8 -92 20 -102 C 50 -76 40 -18 0 0 Z" fill="url(#petalGrad)" stroke="#d98aa0" stroke-width="2"/></svg>
+  </div>
   <div class="flash" aria-hidden="true"></div>
 
   <a class="skip" href="#home" data-i18n="skip">تخطَّ إلى مهام اليوم</a>
@@ -207,6 +229,11 @@
         <header class="section-head">
           <h2 id="yearTitle"><span data-i18n="yearGoals">أهداف</span> <span class="num" id="yearNum">2026</span></h2>
           <p class="section-sub" id="yearSummary"></p>
+          <nav class="month-nav" data-i18n-aria="browseMonths" aria-label="تصفّح الشهور">
+            <button class="icon-btn" id="monthPrev" type="button" data-i18n-aria="prevMonth" aria-label="الشهر السابق"><svg class="ico"><use href="#i-prev"/></svg></button>
+            <div class="month-dots" id="monthDots"></div>
+            <button class="icon-btn" id="monthNext" type="button" data-i18n-aria="nextMonth" aria-label="الشهر التالي"><svg class="ico"><use href="#i-next"/></svg></button>
+          </nav>
         </header>
         <div class="months-viewport">
           <ol class="months" id="months"></ol>

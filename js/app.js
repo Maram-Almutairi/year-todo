@@ -243,6 +243,13 @@
     }).join('');
   }
 
+  function renderMonthDots() {
+    const box = $('#monthDots');
+    if (!box) return;
+    const cur = new Date().getMonth();
+    box.innerHTML = dict().months.map((m, i) => `<button type="button" data-m="${i}" class="${i === cur ? 'is-now' : ''}" aria-label="${esc(m)}" title="${esc(m)}"><span>${esc(m.slice(0, lang() === 'ar' ? 3 : 3))}</span></button>`).join('');
+  }
+
   // ---------------- heat map of the year ----------------
   function renderHeat() {
     const heat = $('#heat');
@@ -521,6 +528,7 @@
   renderGreeting();
   renderQuests();
   renderMonths();
+  renderMonthDots();
   renderHeat();
   renderStats(false);
   renderQuote();
