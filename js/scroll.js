@@ -116,18 +116,102 @@
   });
   intro.to({}, { duration: 0.12 });       // a breath on the revealed kitten before release
 
+  // ================= 1½. The drop through the cloud deck =================
+  // Right after the wheel: three cloud layers rush upward past the visitor (near = fastest),
+  // the frame tilts a little, a thin mist passes, the rain streaks upward, and we land in today.
+  const fallTl = gsap.timeline({
+    defaults: { ease: 'none' },
+    scrollTrigger: {
+      trigger: '#fall', start: 'top top', end: '+=130%', pin: true, scrub: 0.6,
+      onUpdate: (self) => { window.Sky.fall = Math.sin(Math.PI * Math.min(1, self.progress * 1.08)); },
+      onLeave: () => { window.Sky.fall = 0; },
+      onLeaveBack: () => { window.Sky.fall = 0; },
+      onToggle: (self) => $('.fall-clouds').classList.toggle('is-on', self.isActive)
+    }
+  });
+  [['far', 6], ['mid', -8], ['near', 12]].forEach(([d, drift]) => {
+    fallTl.fromTo(`.fall-clouds .${d}`,
+      { yPercent: 0, y: () => window.innerHeight * 1.05, x: 0 },
+      { yPercent: -100, y: () => -window.innerHeight * 0.05, x: () => window.innerWidth * drift / 100, duration: 1 }, 0);
+  });
+  fallTl
+    .fromTo('.fall-stage', { rotate: rtl ? 2 : -2 }, { rotate: rtl ? -1 : 1, duration: 1, ease: 'sine.inOut' }, 0)
+    .fromTo('.fall-line', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.14, ease: 'power2.out' }, 0.1)
+    .to('.fall-line', { opacity: 0, y: -70, duration: 0.14, ease: 'power2.in' }, 0.38)
+    .fromTo('.fall-mist', { opacity: 0 }, { opacity: 0.5, duration: 0.16, ease: 'power1.in' }, 0.44)
+    .to('.fall-mist', { opacity: 0, duration: 0.24, ease: 'power2.out' }, 0.6);
+
+  // ================= The knight's flight =================
+  // One continuous move from the end of the wheel to its place in today:
+  // breaks out of the round window → falls with the visitor through the clouds, gliding → lands
+  // exactly on the standing figure, which takes over. Positions are read live, so it lands right
+  // at any screen size, and scrolling back reverses it.
+  const fly = $('#flyKitten');
+  const iris = $('.iris');
+  const irisImg = $('.iris img');
+  const landing = $('.standing img');
+  const RATIO = 1420 / 784;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const clamp01 = (t) => Math.max(0, Math.min(1, t));
+  let flying = false;
+  function placeKitten(p) {
+    const on = p > 0 && p < 1;
+    if (on !== flying) {
+      flying = on;
+      fly.classList.toggle('is-on', on);
+      document.body.classList.toggle('is-flying', on);
+    }
+    irisImg.style.opacity = p > 0 ? String(1 - clamp01(p / 0.08)) : '';
+    if (!on) return;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    // A: the round window (kitten fills it the way the iris crop does)
+    const ir = iris.getBoundingClientRect();
+    const aW = ir.width * 1.05, aX = ir.left + ir.width / 2 - aW / 2, aY = ir.top - ir.height * 0.12;
+    // B: gliding in front of the visitor
+    const bH = Math.min(vh * 0.58, 600), bW = bH / RATIO, bX = vw / 2 - bW / 2, bY = vh * 0.12;
+    // C: the standing figure in today
+    const lr = landing.getBoundingClientRect();
+    let x, y, w, rot = 0, clip = 0;
+    if (p < 0.14) {                                     // breaking out of the window
+      const t = ease(p / 0.14);
+      x = lerp(aX, bX, t); y = lerp(aY, bY, t); w = lerp(aW, bW, t);
+      clip = 1 - t;
+    } else if (p < 0.72) {                              // the fall: drift and sway like a glider
+      const t = (p - 0.14) / 0.58;
+      x = bX + Math.sin(t * Math.PI * 2) * vw * 0.06;
+      y = bY + Math.sin(t * Math.PI * 4) * vh * 0.025;
+      w = bW;
+      rot = Math.sin(t * Math.PI * 3) * 7;
+    } else {                                            // landing on its spot
+      const t = ease((p - 0.72) / 0.28);
+      x = lerp(bX, lr.left, t); y = lerp(bY, lr.top, t); w = lerp(bW, lr.width, t);
+      rot = Math.sin(Math.PI * 3) * 7 * (1 - t);
+    }
+    const s = w / 100;
+    fly.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg) scale(${s.toFixed(4)})`;
+    // while still in the window, clip to the circle so the hand-off from the iris is seamless
+    fly.style.clipPath = clip > 0.01 ? `circle(${(36 + (1 - clip) * 120).toFixed(1)}% at 50% 33%)` : 'none';
+  }
+  ScrollTrigger.create({
+    trigger: '#fall', start: 'top top', endTrigger: '#home', end: 'top 12%',
+    onUpdate: (self) => placeKitten(self.progress),
+    onLeave: () => placeKitten(1),
+    onLeaveBack: () => placeKitten(0)
+  });
+
   // ================= Section hand-offs in 3D =================
   // As each section arrives, the one before swings away to one side in depth while the new one
   // swings in from the other; the sides alternate down the page. Transform + opacity only.
   const chain = [
-    ['.intro-stage', '#home'],
+    ['.fall-stage', '#home'],
     ['#home', '.year-pin'],
     ['.year-pin', '#progress'],
     ['#progress', '#motivation'],
     ['#motivation', '#settings'],
     ['#settings', '.closing']
   ];
-  const triggerOf = (sel) => (sel === '.year-pin' ? '#goals' : sel === '.intro-stage' ? '#intro' : sel);
+  const triggerOf = (sel) => (sel === '.year-pin' ? '#goals' : sel);
   chain.forEach(([prev, next], i) => {
     const side = i % 2 === 0 ? 1 : -1;              // +1: previous leaves to the right, next comes from the left
     const tl = gsap.timeline({
@@ -157,10 +241,9 @@
       { clipPath: 'inset(0% 0% 0% 0% round 28px)', rotateX: 0, y: 0, duration: 1.3, ease: 'expo.out' })
     .from('.quests .quest, .quests .bar, .add-quest', { y: 22, opacity: 0, duration: 0.8, stagger: 0.07, ease: 'expo.out', clearProps: 'transform,opacity' }, 0.25);
   // the knight steps up out of the grass, full height, and holds the ground
+  // (the standing knight's entrance is the flight below: it lands here)
   const stand = gsap.timeline({ scrollTrigger: { trigger: '.standing', start: 'top 85%' } });
   stand
-    .fromTo('.standing img', { y: 160, scale: 0.86, opacity: 0 },
-      { y: 0, scale: 1, opacity: 1, duration: 1.5, ease: 'expo.out' })
     .fromTo('.standing-halo', { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.6, ease: 'expo.out' }, 0.2);
   gsap.from('.note-card', {
     rotate: rtl ? 10 : -10, y: 80, opacity: 0, duration: 1.4, ease: 'elastic.out(1, 0.7)',

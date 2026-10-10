@@ -439,6 +439,38 @@
     rainBtn.addEventListener('click', () => setRain(rainBtn.getAttribute('aria-pressed') !== 'true'));
   }
 
+  // ---------------- the cloud deck we fall through ----------------
+  // Three depth layers, each pre-composited once into a half-resolution canvas. Scrolling only moves
+  // them (transform), so the fall costs the same as moving three pictures.
+  function buildFall() {
+    const deck = $('.fall-clouds');
+    if (!deck || !window.Sky.cloudCanvas) return;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const light = [0, 1, 2].map(() => window.Sky.cloudCanvas('150,162,162', 900, 420, 44));
+    const stormy = window.Sky.cloudCanvas('96,108,108', 900, 420, 40);
+    const band = (cls, hVh, n, wMin, wMax, aMin, aMax, stormyShare) => {
+      const scale = 0.4;
+      const c = document.createElement('canvas');
+      const pw = Math.round(window.innerWidth * 1.4 * scale), ph = Math.round(window.innerHeight * hVh / 100 * scale);
+      c.width = pw; c.height = ph;
+      c.className = 'cloud-band ' + cls;
+      c.style.height = hVh + 'vh';
+      const g = c.getContext('2d');
+      for (let i = 0; i < n; i++) {
+        const tw = pw * rnd(wMin, wMax) / 100, th = tw * 420 / 900;
+        const x = pw * (((i + 0.5) / n) + rnd(-0.12, 0.12));
+        const y = ph * (0.05 + ((i + rnd(0, 1)) / n) * 0.9);
+        g.globalAlpha = rnd(aMin, aMax);
+        g.drawImage(Math.random() < stormyShare ? stormy : light[i % 3], x - tw / 2, y - th / 2, tw, th);
+      }
+      return c;
+    };
+    deck.append(
+      band('far', 260, 9, 22, 36, 0.6, 0.8, 0.45),
+      band('mid', 300, 7, 34, 52, 0.8, 0.95, 0.2),
+      band('near', 340, 5, 55, 85, 0.95, 1, 0));
+  }
+
   // ---------------- first visit: ask the name ----------------
   function setupWelcome() {
     if (S().name) return;
@@ -485,6 +517,7 @@
   // ---------------- boot ----------------
   applyLang();
   buildWheel();
+  buildFall();
   renderGreeting();
   renderQuests();
   renderMonths();

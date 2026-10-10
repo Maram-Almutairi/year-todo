@@ -248,6 +248,35 @@ main { position: relative; z-index: 2; }
   box-shadow: var(--shadow);
 }
 
+/* ---------- 1½. falling through the clouds ---------- */
+.fall { position: relative; height: 100vh; height: 100svh; }
+.fall-stage { position: absolute; inset: -14%; overflow: hidden; display: grid; place-items: center; }
+.fall-clouds { position: absolute; inset: 0; visibility: hidden; }
+.fall-clouds.is-on { visibility: visible; }
+.cloud-band { position: absolute; left: 50%; top: 0; width: 140vw; margin-left: -70vw; display: block; will-change: transform; pointer-events: none; }
+.cloud-band.near { z-index: 2; }
+.fall-mist { position: absolute; inset: 0; z-index: 3; opacity: 0; background: radial-gradient(80% 70% at 50% 50%, rgba(232, 236, 236, 0.9), rgba(206, 214, 212, 0.7)); }
+.fall-line {
+  position: absolute; z-index: 4; bottom: 16%; margin: 0; padding: 14px 28px; border-radius: 999px;
+  font-family: var(--serif); font-style: italic; font-size: clamp(24px, 3vw, 40px); color: var(--on-sky);
+  background: rgba(44, 52, 50, 0.82); opacity: 0;
+}
+:lang(ar) .fall-line { font-style: normal; }
+.calm .fall { display: none; }
+
+/* the knight that leaves the wheel, falls with the visitor, and lands in today */
+.fly-kitten {
+  position: fixed; left: 0; top: 0; z-index: 8; width: 100px; height: auto; pointer-events: none;
+  transform-origin: 0 0; visibility: hidden; will-change: transform, clip-path;
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, #000 82%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%);
+  mask-composite: intersect;
+}
+.fly-kitten.is-on { visibility: visible; }
+.is-flying .standing img { opacity: 0; }
+.calm .fly-kitten { display: none; }
+
 /* ---------- 2. today ---------- */
 .today { min-height: 100vh; padding-top: 128px; padding-bottom: 96px; }
 .today-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 36px; }
