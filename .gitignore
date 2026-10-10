@@ -1,0 +1,13 @@
+# Local tooling and design-review files (not part of the site)
+.claude/
+.impeccable/
+PRODUCT.md
+assets/reference.webp
+
+# Never commit secrets or dependencies
+.env
+.env.*
+*.pem
+*.key
+node_modules/
+*.log
