@@ -266,13 +266,14 @@ main { position: relative; z-index: 2; }
 .calm .fall { display: none; }
 
 /* a blossom leaves the wheel, tumbles down with the visitor, and lands on the knight's head */
-.fly-flower, .fly-petals svg {
+.fly-flower, .fly-petals img {
   position: fixed; left: 0; top: 0; z-index: 8; pointer-events: none; visibility: hidden;
   transform-origin: 50% 50%; will-change: transform, opacity;
 }
-.fly-flower { width: 320px; height: 320px; filter: drop-shadow(0 24px 28px rgba(16, 22, 20, 0.35)); }
-.fly-flower svg { display: block; width: 100%; height: 100%; }
-.fly-on .fly-flower, .fly-on .fly-petals svg { visibility: visible; }
+.fly-flower { width: 440px; height: 440px; filter: drop-shadow(0 26px 30px rgba(16, 22, 20, 0.4)); }
+.fly-flower img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.fly-petals img { width: 220px; height: 220px; object-fit: contain; filter: drop-shadow(0 14px 16px rgba(16, 22, 20, 0.3)); }
+.fly-on .fly-flower, .fly-on .fly-petals img { visibility: visible; }
 .calm .fly-flower, .calm .fly-petals { display: none; }
 
 /* ---------- 2. today ---------- */

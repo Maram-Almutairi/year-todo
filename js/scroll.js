@@ -152,13 +152,14 @@
   // (spinning, swaying, turning edge-on like a real falling flower, three loose petals trailing), and
   // settles onto the flower on the knight's head in today. Positions are read live; scrolling back reverses it.
   const flower = $('#flyFlower');
-  const loosePetals = $$('.fly-petals svg');
+  const loosePetals = $$('.fly-petals img');
   const iris = $('.iris');
   const landing = $('.standing img');
-  const BASE = 320;                                       // drawn size; only ever scaled down, so it stays crisp
+  const BASE = 440;                                       // drawn size; only ever scaled down, so it stays crisp
   const lerp = (a, b, t) => a + (b - a) * t;
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   let flyingOn = false;
+  let flowerP = 0;
   const place = (el, cx, cy, size, rot, flip, op, base) => {
     const sc = size / base;
     el.style.transform = `translate3d(${(cx - base / 2).toFixed(1)}px, ${(cy - base / 2).toFixed(1)}px, 0) rotate(${rot.toFixed(1)}deg) scale(${(sc * flip).toFixed(4)}, ${sc.toFixed(4)})`;
@@ -204,15 +205,18 @@
       const px = x + Math.sin(q * 9 + i * 2.1) * vw * (0.1 + i * 0.05) + (i - 1) * vw * 0.12;
       const py = y - vh * (0.2 + i * 0.12) + Math.min(1, q / 0.7) * vh * 0.1;
       const pOp = p < 0.06 ? p / 0.06 : p > 0.7 ? Math.max(0, 1 - (p - 0.7) / 0.12) : 1;
-      place(el, px, py, 64 * (0.7 + i * 0.25), q * (600 + i * 200), 0.4 + 0.6 * Math.abs(Math.cos(q * 12 + i)), pOp * 0.95, 64);
+      place(el, px, py, 220 * (0.42 + i * 0.16), q * (300 + i * 120), 0.45 + 0.55 * Math.abs(Math.cos(q * 8 + i)), pOp * 0.92, 220);
     });
   }
   ScrollTrigger.create({
-    trigger: '#fall', start: 'top top', endTrigger: '#home', end: 'top 12%',
-    onUpdate: (self) => placeFlower(self.progress),
-    onLeave: () => placeFlower(1),
-    onLeaveBack: () => placeFlower(0)
+    // ends when today's section has risen to 12% from the top: the fall's pin end + 88% of a screen
+    trigger: '#fall', start: 'top top', end: () => fallTl.scrollTrigger.end + window.innerHeight * 0.88,
+    onUpdate: (self) => { flowerP = self.progress; placeFlower(flowerP); },
+    onLeave: () => { flowerP = 1; placeFlower(1); },
+    onLeaveBack: () => { flowerP = 0; placeFlower(0); }
   });
+  // keep following the landing spot while the section below is still easing into place
+  gsap.ticker.add(() => { if (flyingOn) placeFlower(flowerP); });
 
   // ================= 2. Today =================
   gsap.fromTo('.greeting', { clipPath: 'inset(0 0 100% 0)', y: 50 }, {
