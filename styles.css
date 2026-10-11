@@ -113,7 +113,7 @@ main { position: relative; z-index: 2; }
   transition: background 0.6s var(--ease-out), border-color 0.6s;
 }
 .past-intro .topbar {
-  background: rgba(56, 66, 66, 0.92);
+  background: rgba(56, 66, 66, 0.97);
   
   border-color: var(--glass-line);
 }

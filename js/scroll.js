@@ -337,6 +337,11 @@
     scrollTrigger: { trigger: '.quote-hand', start: 'top 90%' }
   });
 
+  // flat fade-up for the last sections (no sideways motion)
+  ['#progress', '#motivation', '#settings'].forEach((sel) => {
+    gsap.from(sel, { y: 60, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: sel, start: 'top 85%' } });
+  });
+
   // ================= 6. Settings + close =================
   gsap.from('.settings-card', {
     y: 80, opacity: 0, scale: 0.96, duration: 1.2, ease: 'expo.out',
@@ -351,13 +356,11 @@
   // Each section swings in from one side as it arrives and swings out to the other only once it has
   // been scrolled past; sides alternate down the page. Created after every pin, so the positions
   // account for pinned scroll. Transform + opacity only.
+  // Only the big hand-off (today ↔ the months) is 3D. Progress, motivation and settings keep their own
+  // simple, flat entrances so nothing ever swings sideways under the sidebar.
   const sections = [
     { el: '#home', enter: '#home', exit: '#home' },
-    { el: '.year-pin', enter: '#goals', exit: '#progress', exitStart: 'top 95%', exitEnd: 'top 35%' },
-    { el: '#progress', enter: '#progress', exit: '#progress' },
-    { el: '#motivation', enter: '#motivation', exit: '#motivation' },
-    { el: '#settings', enter: '#settings', exit: '#settings' },
-    { el: '.closing', enter: '.closing' }
+    { el: '.year-pin', enter: '#goals', exit: '#progress', exitStart: 'top 95%', exitEnd: 'top 35%' }
   ];
   sections.forEach((c, i) => {
     const side = i % 2 === 0 ? 1 : -1;            // +1: comes in from the left, leaves to the right
