@@ -39,6 +39,7 @@
   --hand: 'Caveat', 'Aref Ruqaa', cursive;
 
   --rail-w: 220px;
+  --rail-space: calc(var(--rail-w) + 24px);   /* sidebar + its margin: centered content keeps clear of it */
   --gutter: clamp(16px, 4vw, 56px);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark;
@@ -184,9 +185,9 @@ main { position: relative; z-index: 2; }
 
 /* ---------- 1. intro wheel ---------- */
 .intro { position: relative; height: 100vh; height: 100svh; }
-.intro-stage { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; }
+.intro-stage { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; padding-inline-start: var(--rail-space); }
 .intro-title {
-  position: absolute; z-index: 3; top: max(96px, 11vh); inset-inline: var(--gutter); margin: 0; text-align: center;
+  position: absolute; z-index: 3; top: max(96px, 11vh); inset-inline: calc(var(--rail-space) + var(--gutter)) var(--gutter); margin: 0; text-align: center;
   display: grid; justify-items: center; gap: 0.1em; font-weight: 400;
   text-shadow: 0 2px 24px rgba(30, 38, 36, 0.6);
 }
@@ -219,12 +220,12 @@ main { position: relative; z-index: 2; }
 .wheel-notch { position: absolute; top: -3.5%; left: 50%; width: 4px; height: 7%; margin-left: -2px; border-radius: 4px; background: var(--blossom); transform-origin: 50% 0; box-shadow: 0 3px 6px rgba(20, 24, 22, 0.45); }
 
 .intro-caption {
-  position: absolute; z-index: 3; bottom: 5vh; margin: 0; inset-inline: var(--gutter); text-align: center;
+  position: absolute; z-index: 3; bottom: 5vh; margin: 0; inset-inline: calc(var(--rail-space) + var(--gutter)) var(--gutter); text-align: center;
   font-family: var(--serif); font-style: italic; font-size: clamp(20px, 2.2vw, 30px); opacity: 0;
   text-shadow: 0 2px 18px rgba(30, 38, 36, 0.7);
 }
 :lang(ar) .intro-caption { font-style: normal; }
-.scroll-cue { position: absolute; z-index: 3; bottom: 4vh; display: grid; justify-items: center; gap: 10px; font-size: 15px; color: var(--on-sky-soft); letter-spacing: 0.04em; }
+.scroll-cue { position: absolute; z-index: 3; bottom: 4vh; inset-inline: calc(var(--rail-space) + var(--gutter)) var(--gutter); margin-inline: auto; width: fit-content; display: grid; justify-items: center; gap: 10px; font-size: 15px; color: var(--on-sky-soft); letter-spacing: 0.04em; }
 .scroll-cue i { width: 1.5px; height: 46px; background: linear-gradient(var(--on-sky), transparent); animation: cue 2.2s var(--ease-out) infinite; transform-origin: top; }
 @keyframes cue { 0% { transform: scaleY(0); opacity: 1 } 70% { transform: scaleY(1); opacity: 1 } 100% { transform: scaleY(1); opacity: 0 } }
 .petals svg { position: absolute; left: 50%; top: 58%; width: 34px; height: 34px; color: var(--blossom); opacity: 0; filter: drop-shadow(0 4px 8px rgba(20, 24, 22, 0.35)); }
@@ -250,6 +251,7 @@ main { position: relative; z-index: 2; }
 /* ---------- 1½. falling through the clouds ---------- */
 .fall { position: relative; height: 100vh; height: 100svh; }
 .fall-stage { position: absolute; inset: -14%; overflow: hidden; display: grid; place-items: center; }
+.fall-stage .fall-line { inset-inline: calc(10.94% + var(--rail-space)) 10.94%; margin-inline: auto; width: fit-content; }   /* stage is oversized by 14% per side */
 .fall-clouds { position: absolute; inset: 0; visibility: hidden; }
 .fall-clouds.is-on { visibility: visible; }
 .cloud-band { position: absolute; left: 50%; top: 0; width: 140vw; margin-left: -70vw; display: block; will-change: transform; pointer-events: none; }
@@ -631,7 +633,7 @@ li:hover > .del, .del:focus-visible { opacity: 1; }
   .note-card { align-self: start; }
 }
 @media (max-width: 960px) {
-  :root { --rail-w: 0px; }
+  :root { --rail-w: 0px; --rail-space: 0px; }
   .today, .year-pin, .progress, .motivation, .settings, .closing { padding-inline: var(--gutter); }
   .rail {
     top: auto; bottom: 12px; inset-inline: 12px; width: auto; padding: 6px; border-radius: 22px;

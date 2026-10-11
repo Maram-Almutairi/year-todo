@@ -33,8 +33,14 @@
     const target = $(a.getAttribute('href'));
     if (!target) return;
     e.preventDefault();
-    if (lenis) lenis.scrollTo(target, { offset: 0, duration: 1.6 });
-    else target.scrollIntoView({ behavior: calm ? 'auto' : 'smooth' });
+    // Scroll to where the section sits in the layout, not where its 3D move currently shows it:
+    // offsetTop ignores transforms, and a pinned section is measured through its pin spacer.
+    let el = target;
+    if (el.parentElement && el.parentElement.classList.contains('pin-spacer')) el = el.parentElement;
+    let y = 0;
+    for (let n = el; n; n = n.offsetParent) y += n.offsetTop;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({ top: Math.min(y, max), behavior: calm ? 'auto' : 'smooth' });
     history.replaceState(null, '', a.getAttribute('href'));
     const focusable = target.querySelector('h1, h2');
     if (focusable) { focusable.setAttribute('tabindex', '-1'); focusable.focus({ preventScroll: true }); }
@@ -166,7 +172,10 @@
     const ir = iris.getBoundingClientRect();
     const lr = landing.getBoundingClientRect();
     const A = { x: ir.left + ir.width / 2, y: ir.top + ir.height / 2, s: Math.max(30, ir.width * 0.18) };
-    const B = { x: vw / 2, y: vh * 0.42, s: Math.min(vw, vh) * 0.42 };
+    const rail = document.querySelector('.rail').getBoundingClientRect();
+    const side = rail.height > vh * 0.5;                  // a side rail (desktop), not the phone's bottom bar
+    const freeL = side && !rtl ? rail.right : 0, freeR = side && rtl ? rail.left : vw;
+    const B = { x: (freeL + freeR) / 2, y: vh * 0.42, s: Math.min(freeR - freeL, vh) * 0.42 };
     // the blossom on the knight's head sits ~66% across, ~16% down the standing image
     const C = { x: lr.left + lr.width * 0.66, y: lr.top + lr.height * 0.165, s: lr.width * 0.16 };
     const swayEnd = Math.sin(Math.PI * 2.2) * vw * 0.16;
