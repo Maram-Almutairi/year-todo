@@ -163,11 +163,10 @@ main { position: relative; z-index: 2; }
   background: linear-gradient(180deg, rgba(92, 104, 100, 0.9), rgba(80, 94, 84, 0.9));
   border: 1px solid var(--glass-line); box-shadow: var(--shadow);
   display: flex; flex-direction: column; overflow: hidden;
-  opacity: 0; transform: translateX(calc(var(--dir, -1) * 40px)); pointer-events: none;
-  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+  animation: rail-in 1s var(--ease-out) 0.3s both;
 }
 [dir="rtl"] .rail { --dir: 1; }
-.past-intro .rail { opacity: 1; transform: none; pointer-events: auto; }
+@keyframes rail-in { from { opacity: 0; transform: translateX(calc(var(--dir, -1) * 40px)); } }
 .rail ul { list-style: none; margin: 0; padding: 0 12px; display: grid; gap: 6px; }
 .rail a {
   display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-radius: 18px;
@@ -636,7 +635,6 @@ li:hover > .del, .del:focus-visible { opacity: 1; }
   .today, .year-pin, .progress, .motivation, .settings, .closing { padding-inline: var(--gutter); }
   .rail {
     top: auto; bottom: 12px; inset-inline: 12px; width: auto; padding: 6px; border-radius: 22px;
-    transform: translateY(30px);
   }
   .rail ul { grid-auto-flow: column; padding: 0; gap: 2px; }
   .rail a { flex-direction: column; gap: 4px; padding: 8px 4px; font-size: 12px; text-align: center; border-radius: 16px; }
