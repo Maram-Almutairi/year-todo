@@ -224,6 +224,17 @@
       if (th && !th.title) fetchTitle(th).then((title) => { if (title) { th.title = title; window.Store.save(); emit(); } });
       emit();   // the player iframe is created only when play is pressed
     },
+    startTheme() {
+      const cur = list()[S().current];
+      if (playing && cur && cur.theme) return;
+      const i = list().findIndex((e) => e.theme);
+      if (i >= 0 && i === S().current && player && loadedId === list()[i].id) { toggle(); return; }
+      this.playTheme();
+    },
+    pause() {
+      if (!player || !playing) return;
+      if (player.kind === 'youtube') player.api.pauseVideo(); else player.api.pause();
+    },
     playTheme() {
       let i = list().findIndex((e) => e.theme);
       if (i < 0) { list().unshift({ ...THEME }); i = 0; S().current = Math.min(list().length - 1, S().current + 1); window.Store.save(); }

@@ -302,6 +302,25 @@
 
     $('#playBtn').addEventListener('click', () => window.Music.toggle());
     $('#themeBtn').addEventListener('click', () => window.Music.playTheme());
+    const topBtn = $('#themeTopBtn');
+    topBtn.addEventListener('click', () => {
+      const on = topBtn.getAttribute('aria-pressed') === 'true';
+      if (on) { window.Music.pause(); S().autoMusic = false; }
+      else { window.Music.startTheme(); S().autoMusic = true; }
+      Store.save();
+      window.Sky.audio.ensure();              // thunder becomes audible once sound is allowed
+    });
+    // Browsers only allow sound after the visitor interacts, so the theme starts on the first
+    // click / tap / key press (for a new visitor that is the "Let's begin" button).
+    const startAmbience = (e) => {
+      window.removeEventListener('pointerdown', startAmbience, true);
+      window.removeEventListener('keydown', startAmbience, true);
+      window.Sky.audio.ensure();
+      if (e && e.target && e.target.closest && e.target.closest('#themeTopBtn, #themeBtn, #playBtn, #player')) return;
+      if (S().autoMusic !== false) window.Music.startTheme();
+    };
+    window.addEventListener('pointerdown', startAmbience, true);
+    window.addEventListener('keydown', startAmbience, true);
     $('#nextBtn').addEventListener('click', () => window.Music.next());
     $('#prevBtn').addEventListener('click', () => window.Music.prev());
 
@@ -325,6 +344,9 @@
     window.Music.init(t, ({ playing, title, items, current, labelFor, isTheme }) => {
       const themeOn = playing && isTheme;
       $('#themeBtn').setAttribute('aria-pressed', String(themeOn));
+      $('#themeTopBtn').setAttribute('aria-pressed', String(themeOn));
+      $('#themeTopBtn').setAttribute('aria-label', themeOn ? t('pause') + ' · ' + t('themeMusic') : t('themeMusic'));
+      $('#themeTopBtn').innerHTML = `<svg class="ico"><use href="#i-${themeOn ? 'pause' : 'play'}"/></svg>`;
       $('#themeBtn').classList.toggle('is-on', themeOn);
       $('#themeBtn .theme-disc').innerHTML = `<svg class="ico"><use href="#i-${themeOn ? 'pause' : 'play'}"/></svg>`;
       document.body.classList.toggle('is-playing', playing);

@@ -352,28 +352,7 @@
     scrollTrigger: { trigger: '.closing', start: 'top 85%' }
   });
 
-  // ================= Section hand-offs in 3D =================
-  // Each section swings in from one side as it arrives and swings out to the other only once it has
-  // been scrolled past; sides alternate down the page. Created after every pin, so the positions
-  // account for pinned scroll. Transform + opacity only.
-  // Only the big hand-off (today ↔ the months) is 3D. Progress, motivation and settings keep their own
-  // simple, flat entrances so nothing ever swings sideways under the sidebar.
-  const sections = [
-    { el: '#home', enter: '#home', exit: '#home' },
-    { el: '.year-pin', enter: '#goals', exit: '#progress', exitStart: 'top 95%', exitEnd: 'top 35%' }
-  ];
-  sections.forEach((c, i) => {
-    const side = i % 2 === 0 ? 1 : -1;            // +1: comes in from the left, leaves to the right
-    gsap.fromTo(c.el,
-      { xPercent: -30 * side, rotateY: 26 * side, z: -200, opacity: 0, transformPerspective: 1400, transformOrigin: side > 0 ? '0% 50%' : '100% 50%' },
-      { xPercent: 0, rotateY: 0, z: 0, opacity: 1, ease: 'power2.out',
-        scrollTrigger: { trigger: c.enter, start: 'top bottom', end: 'top 35%', scrub: 0.8 } });
-    if (!c.exit) return;
-    gsap.to(c.el, {
-      xPercent: 30 * side, rotateY: -26 * side, z: -200, opacity: 0, ease: 'power1.in', immediateRender: false,
-      scrollTrigger: { trigger: c.exit, start: c.exitStart || 'bottom 40%', end: c.exitEnd || 'bottom top', scrub: 0.8 }
-    });
-  });
+  // (no 3D hand-offs: sections stay in place; each has its own flat entrance)
 
   navTriggers();
 

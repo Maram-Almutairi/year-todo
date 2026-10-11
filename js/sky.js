@@ -180,25 +180,30 @@
 
   // ---------- lightning ----------
   function lightning() {
-    if (!opts.calm && document.visibilityState === 'visible' && opts.intensity > 0.45) {
+    if (!opts.calm && document.visibilityState === 'visible' && opts.intensity > 0.3) {
       flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
       boost = 0.5;
-      if (audio.on) audio.thunder();
+      if (audio.ctx) audio.thunder();
+      // sometimes a second, closer strike right after the first
+      if (Math.random() < 0.35) setTimeout(() => { flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on'); boost = 0.7; }, 700 + Math.random() * 600);
     }
-    setTimeout(lightning, 14000 + Math.random() * 18000);
+    setTimeout(lightning, 6000 + Math.random() * 8000);
   }
 
   // ---------- rain sound (Web Audio, generated, no files) ----------
   const audio = {
-    on: false, ctx: null, master: null,
-    start() {
+    on: false, ctx: null, master: null, bed: null,
+    // builds the graph once (needs a user gesture); the rain bed stays silent until start()
+    ensure() {
       if (!this.ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return false;
         this.ctx = new AC();
         const c = this.ctx;
-        this.master = c.createGain(); this.master.gain.value = 0;
+        this.master = c.createGain(); this.master.gain.value = 1;
         this.master.connect(c.destination);
+        this.bed = c.createGain(); this.bed.gain.value = 0;
+        this.bed.connect(this.master);
         const len = c.sampleRate * 3;
         const buf = c.createBuffer(2, len, c.sampleRate);
         for (let ch = 0; ch < 2; ch++) {
@@ -214,24 +219,28 @@
         const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 500;
         const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000;
         const g1 = c.createGain(); g1.gain.value = 0.55;
-        hiss.connect(hp).connect(lp).connect(g1).connect(this.master);
+        hiss.connect(hp).connect(lp).connect(g1).connect(this.bed);
         const rumble = c.createBufferSource(); rumble.buffer = buf; rumble.loop = true; rumble.playbackRate.value = 0.5;
         const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 380;
         const g2 = c.createGain(); g2.gain.value = 0.7;
-        rumble.connect(lp2).connect(g2).connect(this.master);
+        rumble.connect(lp2).connect(g2).connect(this.bed);
         hiss.start(); rumble.start(c.currentTime + 0.37);
         this.buf = buf;
         this.drip();
       }
       this.ctx.resume();
-      this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-      this.master.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.6);
+      return true;
+    },
+    start() {
+      if (!this.ensure()) return false;
+      this.bed.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.bed.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.6);
       this.on = true;
       return true;
     },
     stop() {
       if (!this.ctx) return;
-      this.master.gain.setTargetAtTime(0, this.ctx.currentTime, 0.4);
+      this.bed.gain.setTargetAtTime(0, this.ctx.currentTime, 0.4);
       this.on = false;
     },
     drip() {   // occasional close droplets on leaves
@@ -241,19 +250,31 @@
       const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1800 + Math.random() * 2400; bp.Q.value = 8;
       const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.004); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
       const pan = c.createStereoPanner ? c.createStereoPanner() : null;
-      if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; src.connect(bp).connect(g).connect(pan).connect(this.master); }
-      else src.connect(bp).connect(g).connect(this.master);
+      if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; src.connect(bp).connect(g).connect(pan).connect(this.bed); }
+      else src.connect(bp).connect(g).connect(this.bed);
       src.start(t, Math.random() * 2, 0.12);
       setTimeout(() => this.drip(), 80 + Math.random() * 520);
     },
     thunder() {
       const c = this.ctx;
-      const t = c.currentTime + 0.6 + Math.random() * 1.2;
-      const src = c.createBufferSource(); src.buffer = this.buf; src.playbackRate.value = 0.25;
-      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 160;
-      const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1.6, t + 0.4); g.gain.exponentialRampToValueAtTime(0.001, t + 4.5);
-      src.connect(lp).connect(g).connect(this.master);
-      src.start(t, 0, 5);
+      if (!c || c.state !== 'running') return;
+      const t = c.currentTime + 0.5 + Math.random() * 1.2;     // sound arrives after the flash
+      const vol = 0.55;
+      // crack
+      const crack = c.createBufferSource(); crack.buffer = this.buf; crack.playbackRate.value = 0.8;
+      const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.7;
+      const cg = c.createGain(); cg.gain.setValueAtTime(0, t); cg.gain.linearRampToValueAtTime(0.9 * vol, t + 0.02); cg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      crack.connect(bp).connect(cg).connect(this.master); crack.start(t, Math.random() * 2, 0.6);
+      // rolling rumble
+      const roll = c.createBufferSource(); roll.buffer = this.buf; roll.playbackRate.value = 0.22;
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 140;
+      const rg = c.createGain();
+      rg.gain.setValueAtTime(0, t);
+      rg.gain.linearRampToValueAtTime(1.8 * vol, t + 0.35);
+      rg.gain.linearRampToValueAtTime(1.0 * vol, t + 1.3);
+      rg.gain.linearRampToValueAtTime(1.5 * vol, t + 2.0);           // a second swell as it rolls away
+      rg.gain.exponentialRampToValueAtTime(0.001, t + 6.5);
+      roll.connect(lp).connect(rg).connect(this.master); roll.start(t, Math.random(), 7);
     }
   };
 
@@ -297,5 +318,5 @@
   window.addEventListener('resize', () => { clearTimeout(resize.t); resize.t = setTimeout(resize, 150); });
   resize();
   requestAnimationFrame(frame);
-  setTimeout(lightning, 6000);
+  setTimeout(lightning, 3000);
 })();
