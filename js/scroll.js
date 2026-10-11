@@ -376,14 +376,6 @@
 
   window.addEventListener('load', () => {
     ScrollTrigger.refresh(); restore();
-    // review captures: ?at=<section id>&dy=<px> jumps straight to a scroll position
-    const q = new URLSearchParams(location.search);
-    if (q.has('at')) {
-      const el = document.getElementById(q.get('at'));
-      const y = (el ? el.getBoundingClientRect().top + window.scrollY : 0) + Number(q.get('dy') || 0);
-      if (lenis) lenis.scrollTo(y, { immediate: true }); else window.scrollTo(0, y);
-      ScrollTrigger.update();
-    }
   });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
 })();
